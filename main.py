@@ -127,10 +127,11 @@ def receive_message(message, recipient_id):
         connection.commit()
 
         # Send a confirmation message to the sender
-        bot.send_message(user_id, "✅ Question sent!\n\n"
-                                  f"📨 Your link for questions:\n"
+        bot.send_message(user_id, "<b>✅ Question sent!</b>\n\n"
+                                  f"<b>📨 Your link for questions:</b>\n"
                                   f"t.me/{bot.get_me().username}?start={user_id}\n\n"
-                                  "🔐 Send this link to friends and followers to receive anonymous questions!")
+                                  "🔐 Send this link to friends and followers to receive anonymous questions!",
+                         parse_mode='HTML')
 
         # Send the message to the recipient with a "Reply" button
         send_message_to_recipient(
