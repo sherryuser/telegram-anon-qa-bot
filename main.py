@@ -19,7 +19,7 @@ STATE_REPLY = 2
 
 # Function to connect to the SQLite database
 def connect_to_database():
-    connection = sqlite3.connect('anonaskbot.db')
+    connection = sqlite3.connect('anonqabot.db')
     cursor = connection.cursor()
     return connection, cursor
 
@@ -91,17 +91,17 @@ def handle_start(message):
 # Function to send an invitation to write an anonymous question
 def send_anonymous_invitation(user_id, recipient_id):
     if user_id == recipient_id:
-        message = "<b>Write me an anonymous question:</b>\n<i>(you clicked on your own link)</i>"
+        message = "<b>🔗 It's your own link</b>"
     else:
-        message = "<b>Write me an anonymous question:</b>\n<i>(and you too can receive questions)</i>"
+        message = "<b>📥 Write your anonymous message:</b>"
     bot.send_message(user_id, message, parse_mode="HTML")
 
 
 # Function to send a link for anonymous questions
 def send_anonymous_link(user_id):
-    message = f"<b>Your link for questions:</b>\n" \
+    message = f"<b>📨 Your link for questions:</b>\n" \
               f"<a href='t.me/{bot.get_me().username}?start={user_id}'>t.me/{bot.get_me().username}?start={user_id}</a>\n\n" \
-              "Show this link to friends and followers to receive anonymous questions!"
+              "🔐 Send this link to friends and followers to receive anonymous questions!"
     bot.send_message(user_id, message, parse_mode="HTML")
 
 
@@ -127,17 +127,20 @@ def receive_message(message, recipient_id):
         connection.commit()
 
         # Send a confirmation message to the sender
-        bot.send_message(user_id, "✅ Your question has been sent anonymously; wait for the reply!")
+        bot.send_message(user_id, "<b>✅ Question sent!</b>/n/n"
+                                        f"<b>📨 Your link for questions:</b>\n"
+                                        f"<a href='t.me/{bot.get_me().username}?start={user_id}'>t.me/{bot.get_me().username}?start={user_id}</a>\n\n" \
+                                        "🔐 Send this link to friends and followers to receive anonymous questions!")
 
         # Send the message to the recipient with a "Reply" button
         send_message_to_recipient(
             recipient_id,
-            f"<b>You have a new anonymous question:</b>\n\n<i>{user_message}</i>",
+            f"<b>🔏 You have a new anonymous question:</b>\n\n<i>{user_message}</i>",
             reply_markup=create_reply_button(user_id),
             parse_mode="HTML"
         )
     else:
-        bot.send_message(user_id, "Sorry, the recipient was not found.")
+        bot.send_message(user_id, "😞 Sorry, the recipient was not found.")
 
     # Close the database connection
     connection.close()
@@ -146,7 +149,7 @@ def receive_message(message, recipient_id):
 # Function to create a "Reply" button for the recipient
 def create_reply_button(user_id):
     markup = types.InlineKeyboardMarkup()
-    reply_button = types.InlineKeyboardButton("✏ Reply", callback_data=f"reply_{user_id}")
+    reply_button = types.InlineKeyboardButton("Reply Anonymously", callback_data=f"reply_{user_id}")
     markup.add(reply_button)
     return markup
 
@@ -161,7 +164,7 @@ def reply_to_sender(call):
     logging.info(f"User {sender_id} pressed the 'Reply' button for user {recipient_id}")
 
     # Send a prompt for the user to write an anonymous reply
-    bot.send_message(sender_id, "<b>Write an anonymous reply:</b>", parse_mode="HTML")
+    bot.send_message(sender_id, "<b>🔏 Write an anonymous reply:</b>", parse_mode="HTML")
 
     # Register the next step handler to process the reply
     bot.register_next_step_handler(call.message, handle_reply, sender_id=sender_id, recipient_id=recipient_id)
@@ -177,13 +180,13 @@ def handle_reply(message, sender_id, recipient_id):
     # Send the anonymous reply to the recipient
     send_message_to_recipient(
         recipient_id,
-        f"<b>You have a new anonymous reply:</b>\n\n<i>{user_message}</i>",
+        f"<b>🔐 You have a new anonymous reply:</b>\n\n<i>{user_message}</i>",
         reply_markup=create_reply_button(sender_id),
         parse_mode="HTML"
     )
 
     # Send a confirmation message to the sender
-    response_message = "✅ Your reply has been sent!\n\n"
+    response_message = "<b>✅ Your reply has been sent!</b>\n\n"
     response_message += "Your link for questions:\n"
     response_message += f"t.me/{bot.get_me().username}?start={sender_id}\n\n"
     response_message += "Show this link to friends and followers to receive anonymous questions!"
